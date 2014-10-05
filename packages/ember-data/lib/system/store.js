@@ -1202,15 +1202,21 @@ Store = Ember.Object.extend({
 
     @method modelFor
     @param {String or subclass of DS.Model} key
+    @param {Boolean} forPolymorphicRelationship won't throw if this is for a polymorphic relationship lookup
     @return {subclass of DS.Model}
   */
-  modelFor: function(key) {
+  modelFor: function(key, forPolymorphicRelationship) {
+    var polymorphic = !!forPolymorphicRelationship;
     var factory;
 
     if (typeof key === 'string') {
       factory = this.container.lookupFactory('model:' + key);
       if (!factory) {
-        throw new Ember.Error("No model was found for '" + key + "'");
+        if (!polymorphic) {
+          throw new Ember.Error("No model was found for '" + key + "'");
+        } else {
+          return null;
+        }
       }
       factory.typeKey = factory.typeKey || this._normalizeTypeKey(key);
     } else {

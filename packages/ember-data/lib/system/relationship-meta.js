@@ -8,7 +8,7 @@ export function typeForRelationshipMeta(store, meta) {
     if (meta.kind === 'hasMany') {
       typeKey = singularize(typeKey);
     }
-    type = store.modelFor(typeKey);
+    type = store.modelFor(typeKey, meta.options.polymorphic);
   } else {
     type = meta.type;
   }
