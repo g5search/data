@@ -80,21 +80,32 @@ test("extractArray with custom typeForRoot", function() {
   }));
 });
 
-test("extractArray failure with custom typeForRoot", function() {
+test("extractArray warning with custom typeForRoot", function() {
   env.restSerializer.typeForRoot = function(root) {
-    //should be camelized too, but, whoops, the developer forgot!
-    return Ember.String.singularize(root);
+    //return some garbage that won't resolve in the container
+    return "garbage";
   };
 
   var jsonHash = {
-    home_planets: [{id: "1", name: "Umber", superVillains: [1]}],
-    super_villains: [{id: "1", firstName: "Tom", lastName: "Dale", homePlanet: "1"}]
+    home_planets: [{id: "1", name: "Umber", superVillains: [1]}]
   };
 
-  throws(function(){
+  warns(function(){
     env.restSerializer.extractArray(env.store, HomePlanet, jsonHash);
-  }, "No model was found for 'home_planets'",
-  "raised error message expected to contain \"No model was found for 'home_planets'\"");
+  }, /Encountered "home_planets" in payload, but no model was found for model name "garbage"/);
+
+  // should not warn if a model is found.
+  env.restSerializer.typeForRoot = function(root){
+    return Ember.String.camelize(Ember.String.singularize(root));
+  };
+
+  jsonHash = {
+    home_planets: [{id: "1", name: "Umber", superVillains: [1]}]
+  };
+
+  noWarns(function(){
+    env.restSerializer.extractArray(env.store, HomePlanet, jsonHash);
+  });
 });
 
 test("serialize polymorphicType", function() {

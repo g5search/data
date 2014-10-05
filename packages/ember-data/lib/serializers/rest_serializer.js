@@ -267,6 +267,9 @@ export default JSONSerializer.extend({
 
     for (var prop in payload) {
       var typeName  = this.typeForRoot(prop);
+      if (!this._modelExistsForKey(typeName, prop, store)){
+        continue;
+      }
       var type = store.modelFor(typeName);
       var isPrimary = type.typeKey === primaryTypeName;
       var value = payload[prop];
@@ -303,6 +306,12 @@ export default JSONSerializer.extend({
     }
 
     return primaryRecord;
+  },
+
+  _modelExistsForKey: function RESTSerializer_modelExistsForKey(typeKey, prop, store){
+    var hasModel = store.modelFactoryFor(typeKey);
+    Ember.warn('Encountered "' + prop + '" in payload, but no model was found for model name "' + typeKey + '" (resolved model name using ' + this.constructor.toString() + '.typeForRoot("' + prop + '"))', hasModel);
+    return hasModel;
   },
 
   /**
@@ -420,6 +429,9 @@ export default JSONSerializer.extend({
       }
 
       var typeName = this.typeForRoot(typeKey);
+      if (!this._modelExistsForKey(typeName, prop, store)){
+        continue;
+      }
       var type = store.modelFor(typeName);
       var typeSerializer = store.serializerFor(type);
       var isPrimary = (!forcedSecondary && (type.typeKey === primaryTypeName));
@@ -475,6 +487,9 @@ export default JSONSerializer.extend({
 
     for (var prop in payload) {
       var typeName = this.typeForRoot(prop);
+      if (!this._modelExistsForKey(typeName, prop, store)){
+        continue;
+      }
       var type = store.modelFor(typeName);
       var typeSerializer = store.serializerFor(type);
 
